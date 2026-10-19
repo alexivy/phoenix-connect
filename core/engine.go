@@ -217,6 +217,8 @@ type Engine struct {
 	autoCompressMaxTokens int
 	autoCompressMinGap    time.Duration
 	resetOnIdle           time.Duration
+	silentIdleReset       bool
+	silentQueueNotice     bool
 
 	// When true, append [ctx: ~N%] (or model self-report) to assistant replies shown on platforms.
 	showContextIndicator bool
@@ -622,6 +624,12 @@ func (e *Engine) SetAutoCompressConfig(enabled bool, maxTokens int, minGap time.
 
 // SetResetOnIdle configures automatic session rotation after prolonged inactivity.
 // A zero or negative duration disables the behavior.
+// SetSilentIdleReset suppresses routine session-rotation notices, not errors.
+func (e *Engine) SetSilentIdleReset(silent bool) { e.silentIdleReset = silent }
+
+// SetSilentQueueNotice suppresses routine queue receipts, not acceptance errors.
+func (e *Engine) SetSilentQueueNotice(silent bool) { e.silentQueueNotice = silent }
+
 func (e *Engine) SetResetOnIdle(d time.Duration) {
 	if d <= 0 {
 		e.resetOnIdle = 0
@@ -2591,10 +2599,10 @@ func (e *Engine) maybeAutoResetSessionOnIdle(p Platform, msg *Message, sessions 
 		return nil
 	}
 
-	if hasAgent {
-		// Notify the user before the potentially long close. The close
-		// returns as soon as the process exits (usually seconds), but
-		// Stop hooks can take up to 120s.
+	if hasAgent && !e.silentIdleReset {
+		// The idle-reset silence setting covers both routine notices.
+		// Closing the previous process and starting the new session below
+		// still happen even when these implementation details are hidden.
 		e.reply(p, msg.ReplyCtx, e.i18n.T(MsgSessionClosingGraceful))
 	}
 
@@ -2607,7 +2615,9 @@ func (e *Engine) maybeAutoResetSessionOnIdle(p Platform, msg *Message, sessions 
 		return nil
 	}
 
-	e.reply(p, msg.ReplyCtx, e.i18n.Tf(MsgSessionAutoResetIdle, int(e.resetOnIdle/time.Minute)))
+	if !e.silentIdleReset {
+		e.reply(p, msg.ReplyCtx, e.i18n.Tf(MsgSessionAutoResetIdle, int(e.resetOnIdle/time.Minute)))
+	}
 	return newSession
 }
 
@@ -2686,7 +2696,9 @@ func (e *Engine) queueMessageForBusySession(p Platform, msg *Message, interactiv
 		if !created || queueContainsDurableIDLocked(state, id) {
 			state.mu.Unlock()
 			slog.Info("duplicate queued message already accepted", "session", msg.SessionKey, "durable_id", id)
-			e.reply(p, msg.ReplyCtx, e.i18n.T(MsgMessageQueued))
+			if !e.silentQueueNotice {
+				e.reply(p, msg.ReplyCtx, e.i18n.T(MsgMessageQueued))
+			}
 			return true
 		}
 	}
@@ -2695,7 +2707,9 @@ func (e *Engine) queueMessageForBusySession(p Platform, msg *Message, interactiv
 	state.mu.Unlock()
 
 	slog.Info("message queued for busy session", "session", msg.SessionKey, "user", msg.UserName, "queue_depth", queueDepth)
-	e.reply(p, msg.ReplyCtx, e.i18n.T(MsgMessageQueued))
+	if !e.silentQueueNotice {
+		e.reply(p, msg.ReplyCtx, e.i18n.T(MsgMessageQueued))
+	}
 	return true
 }
 

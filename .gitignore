@@ -140,3 +140,7 @@ Desktop.ini
 secrets/
 credentials/
 
+
+# Phoenix Python companion
+__pycache__/
+*.pyc

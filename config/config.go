@@ -328,7 +328,9 @@ type ProjectConfig struct {
 	// ResetOnIdleMins automatically rotates to a new pi-connect session after
 	// the current session has been inactive for the specified number of minutes.
 	// 0 or nil disables the behavior.
-	ResetOnIdleMins *int `toml:"reset_on_idle_mins,omitempty"`
+	ResetOnIdleMins   *int `toml:"reset_on_idle_mins,omitempty"`
+	SilentIdleReset   bool `toml:"silent_idle_reset,omitempty"`
+	SilentQueueNotice bool `toml:"silent_queue_notice,omitempty"`
 	// RunAsUser, when set, causes the agent command for this project to be
 	// spawned under a different Unix user via `sudo -n -iu <user> --`. This
 	// provides OS-level file-system isolation from the supervisor user who

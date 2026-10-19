@@ -1,0 +1,22 @@
+{
+  "name": "phoenix-connect",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "keywords": [
+    "pi-package"
+  ],
+  "description": "Messaging transport companion to Phoenix Core, based on pi-connect",
+  "pi": {
+    "extensions": [
+      "./phoenix/extension.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "files": [
+    "phoenix",
+    "PHOENIX.md"
+  ]
+}

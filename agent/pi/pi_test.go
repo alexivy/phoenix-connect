@@ -2035,7 +2035,7 @@ func TestPiSession_ReadLoopHeartbeatStopsBeforeResult(t *testing.T) {
 	}
 
 	cmd := exec.CommandContext(s.ctx, "sh", "-c", script)
-	cmd.Dir = "/tmp"
+	cmd.Dir = t.TempDir()
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -2135,7 +2135,7 @@ func TestPiSession_ReadLoopWithEcho(t *testing.T) {
 	// Instead, test readLoop directly.
 	ctx := s.ctx
 	cmd := exec.CommandContext(ctx, "sh", "-c", script)
-	cmd.Dir = "/tmp"
+	cmd.Dir = t.TempDir()
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -2308,7 +2308,7 @@ func runReadLoopEvents(t *testing.T, events ...map[string]any) []core.Event {
 	defer s.Close()
 
 	cmd := exec.CommandContext(s.ctx, "sh", "-c", script.String())
-	cmd.Dir = "/tmp"
+	cmd.Dir = t.TempDir()
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		t.Fatalf("StdoutPipe: %v", err)
