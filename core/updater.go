@@ -19,11 +19,12 @@ import (
 	"time"
 )
 
+// UpdateRepository is the only publisher for this maintained fork.
+const UpdateRepository = "alexivy/phoenix-connect"
+
 const (
-	githubReleasesAPI = "https://api.github.com/repos/tasercake/pi-connect/releases"
-	giteeReleasesAPI  = "https://gitee.com/api/v5/repos/cg33/pi-connect/releases"
-	githubDownload    = "https://github.com/tasercake/pi-connect/releases/download"
-	giteeDownload     = "https://gitee.com/cg33/pi-connect/releases/download"
+	githubReleasesAPI = "https://api.github.com/repos/" + UpdateRepository + "/releases"
+	githubDownload    = "https://github.com/" + UpdateRepository + "/releases/download"
 )
 
 type ReleaseInfo struct {
@@ -34,8 +35,8 @@ type ReleaseInfo struct {
 	CreatedAt  string `json:"created_at"`
 }
 
-// CheckForUpdate queries GitHub/Gitee for newer releases.
-// If preferGitee is true, tries Gitee first (faster in China); otherwise GitHub first.
+// CheckForUpdate queries the maintained fork. Legacy mirror preferences are retained
+// in the API for compatibility, but never select a different publisher.
 func CheckForUpdate(currentVersion string, preferGitee bool) (*ReleaseInfo, error) {
 	releases, err := fetchReleases(preferGitee)
 	if err != nil {
@@ -70,30 +71,8 @@ func CheckForUpdate(currentVersion string, preferGitee bool) (*ReleaseInfo, erro
 	return best, nil
 }
 
-func fetchReleases(preferGitee bool) ([]ReleaseInfo, error) {
-	type source struct {
-		name string
-		url  string
-	}
-	sources := []source{
-		{"github", githubReleasesAPI + "?per_page=20"},
-		{"gitee", giteeReleasesAPI + "?per_page=20&direction=desc&sort=created"},
-	}
-	if preferGitee {
-		sources[0], sources[1] = sources[1], sources[0]
-	}
-
-	releases, err := fetchReleasesFrom(sources[0].url)
-	if err == nil && len(releases) > 0 {
-		return releases, nil
-	}
-	slog.Debug("updater: primary source failed, trying fallback", "primary", sources[0].name, "error", err)
-
-	releases, err = fetchReleasesFrom(sources[1].url)
-	if err != nil {
-		return nil, fmt.Errorf("check updates failed (both sources): %w", err)
-	}
-	return releases, nil
+func fetchReleases(_ bool) ([]ReleaseInfo, error) {
+	return fetchReleasesFrom(githubReleasesAPI + "?per_page=20")
 }
 
 func fetchReleasesFrom(apiURL string) ([]ReleaseInfo, error) {
@@ -123,7 +102,7 @@ func fetchReleasesFrom(apiURL string) ([]ReleaseInfo, error) {
 }
 
 // SelfUpdate downloads and installs the given release version.
-// If preferGitee is true, tries Gitee download first.
+// The legacy mirror preference is ignored: downloads come only from this fork.
 func SelfUpdate(tag string, preferGitee bool) error {
 	goos := runtime.GOOS
 	goarch := runtime.GOARCH
@@ -134,12 +113,8 @@ func SelfUpdate(tag string, preferGitee bool) error {
 	}
 	filename := fmt.Sprintf("pi-connect-%s-%s-%s%s", tag, goos, goarch, ext)
 
-	giteeURL := fmt.Sprintf("%s/%s/%s", giteeDownload, tag, filename)
 	githubURL := fmt.Sprintf("%s/%s/%s", githubDownload, tag, filename)
-	urls := []string{githubURL, giteeURL}
-	if preferGitee {
-		urls = []string{giteeURL, githubURL}
-	}
+	urls := []string{githubURL}
 
 	var data []byte
 	var lastErr error

@@ -1,3 +1,7 @@
+# Phoenix Connect
+
+This is the maintained Phoenix messaging fork. Read [PHOENIX.md](PHOENIX.md) for the two-package Pi integration and update policy. The upstream documentation follows for reference.
+
 <p align="center">
   <b>Control Pi from any chat app. Anywhere, anytime.</b>
 </p>

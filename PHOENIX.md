@@ -1,4 +1,4 @@
-# Phoenix Connect (0.1.0 candidate)
+# Phoenix Connect
 
 Personal development fork of tasercake/pi-connect. Base for this branch: 0b4b34992be71c5bbe34a573198e7e32e78d35a1, matching the installed phone bridge. Keep the upstream remote and history; reconcile upstream changes through reviewed merges.
 
@@ -8,7 +8,7 @@ Install with `pi install /absolute/path/phoenix-connect`. Register its transport
 
 The versioned transport reads an explicit target and message from stdin. A successful Go /send acknowledgement maps to accepted; failure returns a safe category. It never picks the first active chat. Notification IDs currently provide correlation, not platform deduplication.
 
-Imported deployed patches: silent queue acknowledgement and idle-close notice respecting silent_idle_reset, with regression tests. These and the adapter are candidates in this repository; production remains on the separately protected working version until package migration and proactive Feishu delivery are verified. Configuration, chats and business data are outside this repo.
+Imported deployed patches: silent queue acknowledgement and idle-close notice respecting silent_idle_reset, with regression tests. Production deployment pins a tested revision and separately validates proactive Feishu delivery. Configuration, chats and business data are outside this repo.
 
 Tests: upstream Go suite, Core Python suite, isolated dual-Pi shared-case test, and transport contract tests. Android/Termux is the supported initial test target. Preserve upstream provenance and notices; no new license is assigned to upstream code by this packaging.
 
@@ -16,6 +16,8 @@ Project configuration adds `silent_idle_reset` and `silent_queue_notice`, both f
 
 Termux portability: process-loop tests use t.TempDir() rather than a non-existent /tmp. Repository text uses LF so embedded shell probes retain valid shebangs. Full Go tests require actual web/dist assets; these are built from the unchanged upstream UI in the isolated validation tree.
 
-2026-10-19 candidate validation: 23 isolated Core/transport regressions passed; the two package manifests loaded together in actual Pi 1.3.0 sessions and shared a synthetic handoff. Connect full Go suite passed across 21 packages after building the real upstream web assets. No candidate package has replaced production, and real proactive Feishu delivery is still an acceptance gate.
+2026-10-19 candidate validation: 23 isolated Core/transport regressions passed; the two package manifests loaded together in actual Pi 1.3.0 sessions and shared a synthetic handoff. Connect full Go suite passed across 21 packages after building the real upstream web assets. Production migration and real proactive Feishu delivery are separate acceptance gates; see the deployment record for the active revision.
 
 0.1.1 migration support: package-owned bridge controller/front launcher, supervisor ownership guards, package-version health, and durable holding of legacy unsent results. 28 isolated tests and actual dual-package Pi loading passed. Runtime migration preserves the original database and private owner configuration.
+
+0.1.2: both CLI and chat-triggered self-update resolve only alexivy/phoenix-connect. Legacy mirror flags remain API-compatible but cannot select the old publisher. No upstream or Gitee fallback is used.

@@ -1,3 +1,7 @@
+# Phoenix Connect
+
+这是自维护的 Phoenix 消息桥接 fork。双插件安装和升级说明请先看 [PHOENIX.md](PHOENIX.md)，下方保留上游参考文档。
+
 <p align="center">
   <img src="./docs/images/banner.svg" alt="CC-Connect Banner" width="800"/>
 </p>

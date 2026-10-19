@@ -15,14 +15,15 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/tasercake/pi-connect/core"
 )
 
 const (
-	githubRepo   = "tasercake/pi-connect"
+	githubRepo   = core.UpdateRepository
 	githubAPI    = "https://api.github.com/repos/" + githubRepo + "/releases/latest"
 	githubAllAPI = "https://api.github.com/repos/" + githubRepo + "/releases"
 	downloadBase = "https://github.com/" + githubRepo + "/releases/download"
-	giteeAPI     = "https://gitee.com/api/v5/repos/cg33/pi-connect/releases/latest"
 )
 
 // cachedLatestVersion 缓存最新版本信息，避免频繁请求API
@@ -41,51 +42,18 @@ type githubRelease struct {
 	Prerelease bool   `json:"prerelease"`
 }
 
-// fetchLatestStableReleaseAsync 异步获取最新稳定版本（非pre-release）
-// 优先使用Gitee，如果失败则回退到GitHub
+// fetchLatestStableReleaseAsync checks only the maintained fork.
 func fetchLatestStableReleaseAsync() {
 	go func() {
-		release, err := fetchLatestStableFromGitee()
+		release, err := fetchLatestStableRelease()
 		if err != nil || release == nil || release.TagName == "" {
-			// Gitee失败，尝试GitHub
-			release, err = fetchLatestStableRelease()
-			if err != nil || release == nil {
-				return
-			}
+			return
 		}
-		// 缓存结果
 		cachedLatestVersion.mu.Lock()
 		cachedLatestVersion.version = release.TagName
 		cachedLatestVersion.timestamp = time.Now()
 		cachedLatestVersion.mu.Unlock()
 	}()
-}
-
-// fetchLatestStableFromGitee 从Gitee获取最新稳定版本
-func fetchLatestStableFromGitee() (*githubRelease, error) {
-	client := &http.Client{Timeout: 3 * time.Second}
-	req, _ := http.NewRequest("GET", giteeAPI, nil)
-	req.Header.Set("Accept", "application/json")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("gitee API returned HTTP %d", resp.StatusCode)
-	}
-
-	var release githubRelease
-	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
-		return nil, err
-	}
-	// Gitee的latest通常就是稳定版，但检查Prerelease以防万一
-	if release.Prerelease {
-		return nil, nil
-	}
-	return &release, nil
 }
 
 // checkUpdateAsync 启动异步版本检查（不阻塞）
