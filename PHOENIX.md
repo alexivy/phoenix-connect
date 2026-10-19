@@ -17,3 +17,5 @@ Project configuration adds `silent_idle_reset` and `silent_queue_notice`, both f
 Termux portability: process-loop tests use t.TempDir() rather than a non-existent /tmp. Repository text uses LF so embedded shell probes retain valid shebangs. Full Go tests require actual web/dist assets; these are built from the unchanged upstream UI in the isolated validation tree.
 
 2026-10-19 candidate validation: 23 isolated Core/transport regressions passed; the two package manifests loaded together in actual Pi 1.3.0 sessions and shared a synthetic handoff. Connect full Go suite passed across 21 packages after building the real upstream web assets. No candidate package has replaced production, and real proactive Feishu delivery is still an acceptance gate.
+
+0.1.1 migration support: package-owned bridge controller/front launcher, supervisor ownership guards, package-version health, and durable holding of legacy unsent results. 28 isolated tests and actual dual-package Pi loading passed. Runtime migration preserves the original database and private owner configuration.
